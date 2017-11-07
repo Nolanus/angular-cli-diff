@@ -139,3 +139,5 @@ fabric.properties
 
 testApp/
 app/
+/deploy_key
+/deploy_key.pub

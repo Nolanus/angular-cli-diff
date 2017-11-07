@@ -1,50 +1,58 @@
 const exec = require('child_process').exec;
 
+function _exec(cwd, command, cb) {
+    exec(command, {cwd}, (err, stdout) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        cb(null, stdout);
+    });
+}
+
+/**
+ * Provide some helpful methods to interact with a git repo in a directory.
+ *
+ * Note: None of these methods takes care of properly escaping the inputs!
+ * So make sure the strings are from trustworthy sources or properly escaped
+ * for usage in bash.
+ *
+ */
 module.exports = {
     getRemoteUrl: (repoPath, cb) => {
-        exec('git config remote.origin.url', {cwd: repoPath}, (err, stdout) => {
-            cb(err, stdout.trim());
+        _exec(repoPath, 'git config remote.origin.url', (err, data) => {
+            if (err) {
+                cb(err);
+                return;
+            }
+            cb(data.trim());
         });
     },
     getLocalBranches: (repoPath, cb) => {
-        exec('git branch', {cwd: repoPath}, (error, stdout) => {
-            cb(error, stdout.split('\n').map(line => line.trim()));
+        _exec(repoPath, 'git branch', (err, data) => {
+            if (err) {
+                cb(err);
+                return;
+            }
+            cb(data.split('\n').map(line => line.trim()));
         });
     },
     cloneRepo: (repoUrl, targetFolder, branch, cb) => {
-        exec('git clone' + (branch ? ' -b ' + branch : '') + ' ' + repoUrl + (targetFolder ? ' ' + targetFolder : ''), (err, stdout) => {
-            if (err) {
-                cb(err);
-                return;
-            }
-            cb(null, stdout);
-        });
+        _exec(repoUrl, 'git clone' + (branch ? ' -b ' + branch : '') + ' ' + repoUrl + (targetFolder ? ' ' + targetFolder : ''), cb);
     },
     createBranch: (repoPath, branchName, startPoint, cb) => {
-        exec('git branch --track -f ' + branchName + (startPoint ? ' ' + startPoint : '') + ' && git checkout ' + branchName, {cwd: repoPath}, (err, stdout) => {
-            if (err) {
-                cb(err);
-                return;
-            }
-            cb(null, stdout);
-        });
+        _exec(repoUrl, 'git branch --track -f ' + branchName + (startPoint ? ' ' + startPoint : '') + ' && git checkout ' + branchName, cb);
     },
     addAllAndCommit: (repoPath, commitMessage, cb) => {
-        exec('git add . && git commit -m "' + commitMessage + '"', {cwd: repoPath}, (err, stdout) => {
-            if (err) {
-                cb(err);
-                return;
-            }
-            cb(null, stdout);
-        });
+        _exec(repoPath, 'git add . && git commit -m "' + commitMessage + '"', cb);
     },
     pushToOrigin: (repoPath, cb) => {
-        exec('git push origin', (err, stdout) => {
-            if (err) {
-                cb(err);
-                return;
-            }
-            cb(null, stdout);
-        });
+        _exec(repoPath, 'git push origin', cb);
+    },
+    pushAllTo: (repoPath, pushTarget, cb) => {
+        _exec(repoPath, 'git push --all ' + pushTarget, cb);
+    },
+    setUserData: (repoPath, username, userMail, cb) => {
+        _exec(repoPath, 'git config user.name "' + username + ' " && git config user.email "' + userMail + '"', cb);
     }
 };

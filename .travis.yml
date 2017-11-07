@@ -5,16 +5,10 @@ node_js:
 
 before_install:
   # Setup the github deployment key for pushs
-  - >-
-    openssl aes-256-cbc
-    -K $encrypted_xxxxxxxxxxxx_key
-    -iv $encrypted_xxxxxxxxxxxx_iv
-    -in github_deploy_key.enc
-    -out github_deploy_key
-    -d
-  - chmod 600 github_deploy_key
+  - openssl aes-256-cbc -K $encrypted_3582d3969d58_key -iv $encrypted_3582d3969d58_iv -in deploy_key.enc -out deploy_key -d
+  - chmod 600 deploy_key
   - eval $(ssh-agent -s)
-  - ssh-add github_deploy_key
+  - ssh-add deploy_key
 
 install:
   - npm install

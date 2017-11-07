@@ -58,50 +58,65 @@ service.createApp = (basePath, angularCliVersion, gitRemoteUrl, cb) => {
                                 cb(mvErr);
                                 return;
                             }
-                            gitUtil.addAllAndCommit(appPath, 'Generate app using @angular/cli v' + angularCliVersion, (commitAllErr) => {
-                                if (commitAllErr) {
-                                    cb(commitAllErr);
+                            gitUtil.setUserData(appPath, 'Bot', '3458616+Nolanus@users.noreply.github.com', (setUserErr) => {
+                                if (setUserErr) {
+                                    cb(setUserErr);
                                     return;
                                 }
-                                console.log('Successfully committed basic @angular/cli app');
+                                gitUtil.addAllAndCommit(appPath, 'Generate app using @angular/cli v' + angularCliVersion, (commitAllErr) => {
+                                    if (commitAllErr) {
+                                        cb(commitAllErr);
+                                        return;
+                                    }
+                                    console.log('Successfully committed basic @angular/cli app');
 
-                                // Now generate some things and commit them
-                                async.eachLimit([
-                                    ['service', 'generate service rebel', 'Service generation'],
-                                    ['component', 'generate component contact', 'Component generation'],
-                                    ['directive', 'generate directive foo', 'Directive generation'],
-                                    ['pipe', 'generate pipe drain', 'Pipe generation'],
-                                    ['enum', 'generate enum foo', 'Enum generation'],
-                                    ['module', 'generate module example', 'Module generation'],
-                                ], 1, (data, eachCb) => {
-                                    console.log('About to generate a ' + data[0]);
-                                    gitUtil.createBranch(appPath, 'ng/' + angularCliVersion + '/' + data[0], 'ng/' + angularCliVersion + '/app', (branchErr) => {
-                                        if (branchErr) {
-                                            eachCb(branchErr);
-                                            return;
-                                        }
-                                        service.generateAndCommit(basePath, appPath, data[1], data[2], (commitErr) => {
-                                            if (commitErr) {
-                                                console.error('Error while generating and committing, will continue anyway');
-                                                console.error(commitErr);
+                                    // Now generate some things and commit them
+                                    async.eachLimit([
+                                        ['service', 'generate service rebel', 'Service generation'],
+                                        ['component', 'generate component contact', 'Component generation'],
+                                        ['directive', 'generate directive foo', 'Directive generation'],
+                                        ['pipe', 'generate pipe drain', 'Pipe generation'],
+                                        ['enum', 'generate enum foo', 'Enum generation'],
+                                        ['module', 'generate module example', 'Module generation'],
+                                    ], 1, (data, eachCb) => {
+                                        console.log('About to generate a ' + data[0]);
+                                        gitUtil.createBranch(appPath, 'ng/' + angularCliVersion + '/' + data[0], 'ng/' + angularCliVersion + '/app', (branchErr) => {
+                                            if (branchErr) {
+                                                eachCb(branchErr);
+                                                return;
                                             }
-                                            gitUtil.pushToOrigin(appPath, (pushErr) => {
-                                                if (pushErr){
-                                                    console.error('Error while pushing the generated component to origin, will continue anyway');
-                                                    console.error(pushErr);
+                                            service.generateAndCommit(basePath, appPath, data[1], data[2], (commitErr) => {
+                                                if (commitErr) {
+                                                    console.error('Error while generating and committing, will continue anyway');
+                                                    console.error(commitErr);
                                                 }
-                                                eachCb(null);
+                                                gitUtil.pushToOrigin(appPath, (pushErr) => {
+                                                    if (pushErr) {
+                                                        console.error('Error while pushing the generated component to origin, will continue anyway');
+                                                        console.error(pushErr);
+                                                    }
+                                                    eachCb(null);
+                                                });
                                             });
                                         });
+                                    }, (err) => {
+                                        if (err) {
+                                            console.error('One generation task seriously failed, will continue with next angular/cli version');
+                                            console.error(err);
+                                        }
+                                        // TODO git push all the new branches to origin
+                                        // Uninstall this angular/cli version
+                                        const pushTarget = gitRemoteUrl.replace(/https:\/\/github.com\//, 'git@github.com:');
+                                        console.log('Pushing changes to ' + pushTarget);
+                                        gitUtil.pushAllTo(appPath, pushTarget, (err, stdout) => {
+                                            if (err) {
+                                                console.error('Error while pushing changes, will continue anyway');
+                                                console.error(err);
+                                            }
+                                            console.log('Uninstalling the current @angular/cli version');
+                                            npm('uninstall', '@angular/cli', {}, cb);
+                                        });
                                     });
-                                }, (err) => {
-                                    if (err) {
-                                        console.error('One generation task seriously failed, will continue with next angular/cli version');
-                                        console.error(err);
-                                    }
-                                    // Uninstall this angular/cli version
-                                    console.log('Uninstalling the current @angular/cli version');
-                                    npm('uninstall', '@angular/cli', {}, cb);
                                 });
                             });
                         });

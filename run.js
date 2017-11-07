@@ -58,8 +58,6 @@ async.auto({
     });
     console.log('The following versions are missing ' + missingVersions);
 
-    const appPath = path.resolve(__dirname, 'app');
-
     async.eachLimit(missingVersions, 1, (version, cb) => {
         ngCli.createApp(__dirname, version, results.gitRemoteUrl, (err) => {
             if (err) {
