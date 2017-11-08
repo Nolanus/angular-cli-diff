@@ -1,7 +1,9 @@
 const path = require('path');
 const exec = require('child_process').exec;
 
+const move = require('glob-move');
 const rimraf = require('rimraf');
+const chalk = require('chalk');
 const async = require('async');
 
 const npm = require('./npm');
@@ -19,56 +21,57 @@ service.generateAndCommit = (basePath, appPath, generateArguments, commitMessage
 };
 service.createApp = (basePath, angularCliVersion, gitRemoteUrl, cb) => {
     const appPath = path.resolve(basePath, 'app');
+    console.log(chalk.bold.magenta('Processing @angular/cli@' + angularCliVersion));
 
-    console.log('Removing probably existing app and testApp folder');
+    console.log(chalk.dim('Removing probably existing app and testApp folder'));
     async.each(['app', 'testApp'], rimraf, (rmErr) => {
         if (rmErr) {
             console.warn(rmErr);
         }
+        console.log(chalk.dim('Cloning ng/base branch into app folder'));
         gitUtil.cloneRepo(gitRemoteUrl, 'app', 'ng/base', (cloneErr) => {
             if (cloneErr) {
-                console.error(cloneErr);
+                cb(cloneErr);
                 return;
             }
-            console.log('Will install @angular/cli@' + angularCliVersion + ' now');
+            console.log(chalk.dim('Will install @angular/cli@' + angularCliVersion + ' now'));
             npm('install', '@angular/cli@' + angularCliVersion, {cwd: basePath}, (npmInstallErr, output) => {
                 if (npmInstallErr) {
                     cb(npmInstallErr);
                     return;
                 }
-                console.log('Installed @angular/cli@' + angularCliVersion + ':');
+                console.log(chalk.green('Installed @angular/cli@' + angularCliVersion + ':'));
                 console.log(output);
-                console.log('Creating new branch in app history');
-                exec('git checkout -b ng/' + angularCliVersion + '/app', {cwd: appPath}, (checkoutErr) => {
+                console.log(chalk.dim('Creating new app branch'));
+                exec('git checkout -b ng/' + angularCliVersion + '/app', {cwd: appPath}, (checkoutErr, checkoutOutput) => {
                     if (checkoutErr) {
                         cb(checkoutErr);
                         return;
                     }
-                    console.log('Will generate a new app now');
-                    exec('./node_modules/.bin/ng new testApp --skip-install --skip-npm --skip-commit --verbose', {cwd: basePath}, (ngNewErr, stdout) => {
+                    console.log(checkoutOutput);
+                    console.log(chalk.dim('Will generate a new app now'));
+                    exec('./node_modules/.bin/ng new testApp --skip-install --skip-npm --skip-git --skip-commit --verbose', {cwd: basePath}, (ngNewErr, stdout) => {
                         if (ngNewErr) {
                             cb(ngNewErr);
                             return;
                         }
-                        console.log('App successfully generated');
+                        console.log(chalk.bgGreen('App successfully generated'));
                         console.log(stdout);
-                        console.log('Moving testApp into app folder');
-                        exec('mv testApp/{,.[!.]}* app', {cwd: basePath}, (mvErr) => {
-                            if (mvErr) {
-                                cb(mvErr);
-                                return;
-                            }
+                        console.log(chalk.dim('Moving testApp into app folder'));
+                        move('testApp/*', 'app/', {dot: true}).then(() => {
+                            console.log(chalk.dim('Configuring git repo and committing all changes'));
                             gitUtil.setUserData(appPath, 'Bot', '3458616+Nolanus@users.noreply.github.com', (setUserErr) => {
                                 if (setUserErr) {
                                     cb(setUserErr);
                                     return;
                                 }
-                                gitUtil.addAllAndCommit(appPath, 'Generate app using @angular/cli v' + angularCliVersion, (commitAllErr) => {
+                                gitUtil.addAllAndCommit(appPath, 'Generate app using @angular/cli v' + angularCliVersion, (commitAllErr, commitOutput) => {
                                     if (commitAllErr) {
                                         cb(commitAllErr);
                                         return;
                                     }
-                                    console.log('Successfully committed basic @angular/cli app');
+                                    console.log(chalk.green('Successfully committed basic @angular/cli app'));
+                                    console.log(commitOutput);
 
                                     // Now generate some things and commit them
                                     async.eachLimit([
@@ -79,7 +82,7 @@ service.createApp = (basePath, angularCliVersion, gitRemoteUrl, cb) => {
                                         ['enum', 'generate enum foo', 'Enum generation'],
                                         ['module', 'generate module example', 'Module generation'],
                                     ], 1, (data, eachCb) => {
-                                        console.log('About to generate a ' + data[0]);
+                                        console.log(chalk.dim('About to generate a ' + data[0]));
                                         gitUtil.createBranch(appPath, 'ng/' + angularCliVersion + '/' + data[0], 'ng/' + angularCliVersion + '/app', (branchErr) => {
                                             if (branchErr) {
                                                 eachCb(branchErr);
@@ -87,39 +90,42 @@ service.createApp = (basePath, angularCliVersion, gitRemoteUrl, cb) => {
                                             }
                                             service.generateAndCommit(basePath, appPath, data[1], data[2], (commitErr) => {
                                                 if (commitErr) {
-                                                    console.error('Error while generating and committing, will continue anyway');
+                                                    console.error(chalk.red('Error while generating and committing, will continue anyway'));
                                                     console.error(commitErr);
                                                 }
                                                 gitUtil.pushToOrigin(appPath, (pushErr) => {
                                                     if (pushErr) {
-                                                        console.error('Error while pushing the generated component to origin, will continue anyway');
+                                                        console.error(chalk.red('Error while pushing the generated component to origin, will continue anyway'));
                                                         console.error(pushErr);
                                                     }
+                                                    console.log(chalk.green('Successfully generated ' + data[0] + ' branch and committed the changes'));
                                                     eachCb(null);
                                                 });
                                             });
                                         });
                                     }, (err) => {
                                         if (err) {
-                                            console.error('One generation task seriously failed, will continue with next angular/cli version');
+                                            console.error(chalk.red('One generation task seriously failed, will continue with next angular/cli version'));
                                             console.error(err);
                                         }
                                         // TODO git push all the new branches to origin
-                                        // Uninstall this angular/cli version
-                                        const pushTarget = gitRemoteUrl.replace(/https:\/\/github.com\//, 'git@github.com:');
-                                        console.log('Pushing changes to ' + pushTarget);
-                                        gitUtil.pushAllTo(appPath, pushTarget, (err, stdout) => {
-                                            if (err) {
-                                                console.error('Error while pushing changes, will continue anyway');
-                                                console.error(err);
+                                        console.log(chalk.dim('Pushing changes to origin'));
+                                        gitUtil.pushAllTo(appPath, 'origin', (pushErr, pushOutput) => {
+                                            if (pushErr) {
+                                                console.error(chalk.red('Error while pushing changes, will continue anyway'));
+                                                console.error(pushErr);
+                                            } else {
+                                                console.log(chalk.green('New Branches successfully pushed:'));
+                                                console.log(pushOutput);
                                             }
-                                            console.log('Uninstalling the current @angular/cli version');
+                                            // Uninstall this angular/cli version
+                                            console.log(chalk.dim('Uninstalling the current @angular/cli version'));
                                             npm('uninstall', '@angular/cli', {}, cb);
                                         });
                                     });
                                 });
                             });
-                        });
+                        }).catch(cb);
                     });
                 });
             });

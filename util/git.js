@@ -25,7 +25,7 @@ module.exports = {
                 cb(err);
                 return;
             }
-            cb(data.trim());
+            cb(null, data.trim());
         });
     },
     getLocalBranches: (repoPath, cb) => {
@@ -34,14 +34,14 @@ module.exports = {
                 cb(err);
                 return;
             }
-            cb(data.split('\n').map(line => line.trim()));
+            cb(null, data.split('\n').map(line => line.replace(/^\* /, '').trim()));
         });
     },
     cloneRepo: (repoUrl, targetFolder, branch, cb) => {
-        _exec(repoUrl, 'git clone' + (branch ? ' -b ' + branch : '') + ' ' + repoUrl + (targetFolder ? ' ' + targetFolder : ''), cb);
+        _exec(undefined, 'git clone' + (branch ? ' -b ' + branch : '') + ' ' + repoUrl + (targetFolder ? ' ' + targetFolder : ''), cb);
     },
     createBranch: (repoPath, branchName, startPoint, cb) => {
-        _exec(repoUrl, 'git branch --track -f ' + branchName + (startPoint ? ' ' + startPoint : '') + ' && git checkout ' + branchName, cb);
+        _exec(repoPath, 'git branch --track -f ' + branchName + (startPoint ? ' ' + startPoint : '') + ' && git checkout ' + branchName, cb);
     },
     addAllAndCommit: (repoPath, commitMessage, cb) => {
         _exec(repoPath, 'git add . && git commit -m "' + commitMessage + '"', cb);

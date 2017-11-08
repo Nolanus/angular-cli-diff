@@ -15,4 +15,8 @@ install:
   - npm run lint
 
 script:
-  - npm start
+  - if [ "$TRAVIS_BRANCH" == "deploy" ]; then
+      npm start;
+    else
+      echo "Not on deploy branch";
+    fi

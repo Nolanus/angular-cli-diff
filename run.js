@@ -1,17 +1,17 @@
 // Versions to be ignored, e.g. due to serious bugs that prevent them from functioning
 const ignoreVersions = ['1.0.0-beta.28.3'];
 
-const path = require('path');
-
+const chalk = require('chalk');
 const async = require('async');
 
 const ngCli = require('./util/ngcli');
 const npm = require('./util/npm');
 const gitUtil = require('./util/git');
 
+console.log(chalk.bold.underline.magenta('angular-cli-upgrade'));
 async.auto({
     gitBranches: (cb) => {
-        console.log('Checking local git branches...');
+        console.log(chalk.dim('Checking local git branches...'));
         gitUtil.getLocalBranches(__dirname, (error, branches) => {
             if (error) {
                 cb(error);
@@ -34,10 +34,16 @@ async.auto({
         });
     },
     gitRemoteUrl: (cb) => {
-        gitUtil.getRemoteUrl(__dirname, cb);
+        gitUtil.getRemoteUrl(__dirname, (err, url) => {
+            if (err) {
+                cb(err);
+                return;
+            }
+            cb(null, url.replace(/https:\/\/github.com\//, 'git@github.com:'));
+        });
     },
     npmVersions: (cb) => {
-        console.log('Checking existing @angular/cli versions...');
+        console.log(chalk.dim('Checking existing @angular/cli versions...'));
         npm('view', '@angular/cli', {}, (err, details) => {
             if (err) {
                 return cb(err);
@@ -56,14 +62,14 @@ async.auto({
     const missingVersions = results.npmVersions.filter((filterTag) => {
         return results.gitBranches.indexOf(filterTag) === -1 && ignoreVersions.indexOf(filterTag) === -1;
     });
-    console.log('The following versions are missing ' + missingVersions);
+    console.log('The following versions are missing\n' + missingVersions.map(version => '- ' + version).join('\n'));
 
     async.eachLimit(missingVersions, 1, (version, cb) => {
         ngCli.createApp(__dirname, version, results.gitRemoteUrl, (err) => {
             if (err) {
-                console.error('Error while generating app for version ' + version);
+                console.error(chalk.red('Error while generating app for version ' + version));
                 console.error(err);
-                console.info('Will continue anyway');
+                console.info(chalk.yellow('Will continue anyway'));
             }
             cb(null);
         });
@@ -71,7 +77,7 @@ async.auto({
         if (err) {
             console.error(err);
         } else {
-            console.info('All testApps successfully generated');
+            console.info(chalk.green('All testApps successfully generated'));
         }
     });
 });

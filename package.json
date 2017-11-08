@@ -20,17 +20,12 @@
   "homepage": "https://github.com/Nolanus/angular-cli-upgrade#readme",
   "dependencies": {
     "async": "^2.5.0",
+    "chalk": "^2.3.0",
+    "glob-move": "^1.0.1",
     "npm": "^4.6.1",
     "rimraf": "^2.6.2"
   },
   "devDependencies": {
-    "eslint": "^4.10.0",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-config-google": "^0.9.1",
-    "eslint-config-standard": "^10.2.1",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-node": "^5.2.1",
-    "eslint-plugin-promise": "^3.6.0",
-    "eslint-plugin-standard": "^3.0.1"
+    "eslint": "^4.10.0"
   }
 }
