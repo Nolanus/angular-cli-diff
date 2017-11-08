@@ -37,14 +37,32 @@ module.exports = {
             cb(null, data.split('\n').map(line => line.replace(/^\* /, '').trim()));
         });
     },
+    getLocalTags: (repoPath, cb) => {
+        _exec(repoPath, 'git tag -l', (err, data) => {
+            if (err) {
+                cb(err);
+                return;
+            }
+            cb(null, data.split('\n').map(line => line.replace(/^\* /, '').trim()));
+        });
+    },
     cloneRepo: (repoUrl, targetFolder, branch, cb) => {
         _exec(undefined, 'git clone' + (branch ? ' -b ' + branch : '') + ' ' + repoUrl + (targetFolder ? ' ' + targetFolder : ''), cb);
     },
     createBranch: (repoPath, branchName, startPoint, cb) => {
         _exec(repoPath, 'git branch --track -f ' + branchName + (startPoint ? ' ' + startPoint : '') + ' && git checkout ' + branchName, cb);
     },
+    checkout: (repoPath, branchName, cb) => {
+        _exec(repoPath, 'git checkout -B ' + branchName, cb);
+    },
+    createTag: (repoPath, tagName, cb) => {
+        _exec(repoPath, 'git tag "' + tagName + '"', cb);
+    },
     addAllAndCommit: (repoPath, commitMessage, cb) => {
-        _exec(repoPath, 'git add . && git commit -m "' + commitMessage + '"', cb);
+        _exec(repoPath, 'git add --all . && git commit -m "' + commitMessage + '"', cb);
+    },
+    merge: (repoPath, mergeBranch, cb) => {
+        _exec(repoPath, 'git merge --commit --ff "' + mergeBranch + '"', cb);
     },
     pushToOrigin: (repoPath, cb) => {
         _exec(repoPath, 'git push origin', cb);
