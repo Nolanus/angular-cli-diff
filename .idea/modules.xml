@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/angular-cli-upgrade.iml" filepath="$PROJECT_DIR$/.idea/angular-cli-upgrade.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/angular-cli-diff.iml" filepath="$PROJECT_DIR$/.idea/angular-cli-diff.iml" />
     </modules>
   </component>
 </project>

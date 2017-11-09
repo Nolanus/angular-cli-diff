@@ -1,7 +1,7 @@
 {
-  "name": "angular-cli-upgrade",
+  "name": "angular-cli-diff",
   "version": "1.0.0",
-  "description": "See the diffs of angular-cli generated apps",
+  "description": "See the diffs of angular-cli generated apps for easier upgrades",
   "main": "run.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -12,12 +12,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/Nolanus/angular-cli-upgrade.git"
+    "url": "git+ssh://git@github.com/Nolanus/angular-cli-diff.git"
   },
   "bugs": {
-    "url": "https://github.com/Nolanus/angular-cli-upgrade/issues"
+    "url": "https://github.com/Nolanus/angular-cli-diff/issues"
   },
-  "homepage": "https://github.com/Nolanus/angular-cli-upgrade#readme",
+  "homepage": "https://github.com/Nolanus/angular-cli-diff#readme",
   "dependencies": {
     "async": "^2.5.0",
     "chalk": "^2.3.0",

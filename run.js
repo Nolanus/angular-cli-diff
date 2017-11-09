@@ -8,7 +8,7 @@ const ngCli = require('./util/ngcli');
 const npm = require('./util/npm');
 const gitUtil = require('./util/git');
 
-console.log(chalk.bold.underline.magenta('angular-cli-upgrade'));
+console.log(chalk.bold.underline.magenta('angular-cli-diff'));
 async.auto({
     gitBranches: (cb) => {
         console.log(chalk.dim('Checking local git branches...'));
@@ -33,15 +33,15 @@ async.auto({
             cb(null, versions);
         });
     },
-    gitRemoteUrl: (cb) => {
+    gitRemoteUrl: ['cliOptions', ({cliOptions}, cb) => {
         gitUtil.getRemoteUrl(__dirname, (err, url) => {
             if (err) {
                 cb(err);
                 return;
             }
-            cb(null, url.replace(/https:\/\/github.com\//, 'git@github.com:'));
+            cb(null, cliOptions.noSsh ? url : url.replace(/https:\/\/github.com\//, 'git@github.com:'));
         });
-    },
+    }],
     npmVersions: (cb) => {
         console.log(chalk.dim('Checking existing @angular/cli versions...'));
         npm('view', '@angular/cli', {}, (err, details) => {
@@ -53,6 +53,23 @@ async.auto({
             // console.log(details[detailKeys[0]].versions);
             cb(null, details[detailKeys[0]].versions);
         });
+    },
+    cliOptions: (cb) => {
+        const options = {
+            localMode: false,
+            noSsh: false
+        };
+        process.argv.slice(2).forEach((argument) => {
+            switch (argument) {
+                case '--local':
+                    options.localMode = true;
+                    break;
+                case '--no-ssh':
+                    options.noSsh = true;
+                    break;
+            }
+        });
+        cb(null, options);
     }
 }, (err, results) => {
     if (err) {
@@ -63,9 +80,13 @@ async.auto({
         return results.gitBranches.indexOf(filterTag) === -1 && ignoreVersions.indexOf(filterTag) === -1;
     });
     console.log('The following versions are missing\n' + missingVersions.map(version => '- ' + version).join('\n'));
-
     async.eachLimit(missingVersions, 1, (version, cb) => {
-        ngCli.createApp(__dirname, version, results.gitRemoteUrl, (err) => {
+        const options = Object.assign({}, results.cliOptions, {
+            basePath: __dirname,
+            angularCliVersion: version,
+            gitRemoteUrl: results.gitRemoteUrl
+        });
+        ngCli.createApp(options, (err) => {
             if (err) {
                 console.error(chalk.red('Error while generating app for version ' + version));
                 console.error(err);

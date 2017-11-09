@@ -19,7 +19,7 @@ service.generateAndCommit = (basePath, appPath, generateArguments, commitMessage
         gitUtil.addAllAndCommit(appPath, commitMessage, cb);
     });
 };
-service.createApp = (basePath, angularCliVersion, gitRemoteUrl, cb) => {
+service.createApp = ({basePath, angularCliVersion, gitRemoteUrl, localMode}, cb) => {
     const appPath = path.resolve(basePath, 'app');
     console.log(chalk.bold.magenta('Processing @angular/cli@' + angularCliVersion));
 
@@ -73,13 +73,13 @@ service.createApp = (basePath, angularCliVersion, gitRemoteUrl, cb) => {
                                     console.log(chalk.green('Successfully committed basic @angular/cli app'));
                                     console.log(commitOutput);
 
-                                    gitUtil.checkout(appPath, 'ng/base', (checkoutErr, checkoutOutput) => {
-                                        if (checkoutErr) {
-                                            cb(checkoutErr);
+                                    gitUtil.checkout(appPath, 'ng/base', (checkout2Err, checkout2Output) => {
+                                        if (checkout2Err) {
+                                            cb(checkout2Err);
                                             return;
                                         }
                                         console.log(chalk.green('Successfully checked out the branch:'));
-                                        console.log(checkoutOutput);
+                                        console.log(checkout2Output);
 
                                         console.log(chalk.dim('Merging ng/' + angularCliVersion + '/app into the current branch'));
                                         gitUtil.merge(appPath, 'ng/' + angularCliVersion + '/app', (mergeErr, mergeOutput) => {
@@ -92,13 +92,13 @@ service.createApp = (basePath, angularCliVersion, gitRemoteUrl, cb) => {
                                             console.log(mergeOutput);
 
                                             console.log(chalk.dim('Changing back onto ng/' + angularCliVersion + '/app branch'));
-                                            gitUtil.checkout(appPath, 'ng/' + angularCliVersion + '/app', (checkout2Err, checkout2Output) => {
-                                                if (checkout2Err) {
-                                                    cb(checkout2Err);
+                                            gitUtil.checkout(appPath, 'ng/' + angularCliVersion + '/app', (checkout3Err, checkout3Output) => {
+                                                if (checkout3Err) {
+                                                    cb(checkout3Err);
                                                     return;
                                                 }
                                                 console.log(chalk.green('Successfully checked out the branch:'));
-                                                console.log(checkout2Output);
+                                                console.log(checkout3Output);
 
                                                 // Now generate some things and commit them
                                                 async.eachLimit([
@@ -120,14 +120,19 @@ service.createApp = (basePath, angularCliVersion, gitRemoteUrl, cb) => {
                                                                 console.error(chalk.red('Error while generating and committing, will continue anyway'));
                                                                 console.error(commitErr);
                                                             }
-                                                            gitUtil.pushToOrigin(appPath, (pushErr) => {
-                                                                if (pushErr) {
-                                                                    console.error(chalk.red('Error while pushing the generated component to origin, will continue anyway'));
-                                                                    console.error(pushErr);
-                                                                }
-                                                                console.log(chalk.green('Successfully generated ' + data[0] + ' branch and committed the changes'));
+                                                            if (localMode) {
+                                                                console.log(chalk.yellow('In local mode, will skip pushing to origin'));
                                                                 eachCb(null);
-                                                            });
+                                                            } else {
+                                                                gitUtil.pushToOrigin(appPath, (pushErr) => {
+                                                                    if (pushErr) {
+                                                                        console.error(chalk.red('Error while pushing the generated component to origin, will continue anyway'));
+                                                                        console.error(pushErr);
+                                                                    }
+                                                                    console.log(chalk.green('Successfully generated ' + data[0] + ' branch and committed the changes'));
+                                                                    eachCb(null);
+                                                                });
+                                                            }
                                                         });
                                                     });
                                                 }, (err) => {
@@ -135,20 +140,31 @@ service.createApp = (basePath, angularCliVersion, gitRemoteUrl, cb) => {
                                                         console.error(chalk.red('One generation task seriously failed, will continue with next angular/cli version'));
                                                         console.error(err);
                                                     }
-                                                    // TODO git push all the new branches to origin
-                                                    console.log(chalk.dim('Pushing changes to origin'));
-                                                    gitUtil.pushAllTo(appPath, 'origin', (pushErr, pushOutput) => {
-                                                        if (pushErr) {
-                                                            console.error(chalk.red('Error while pushing changes, will continue anyway'));
-                                                            console.error(pushErr);
-                                                        } else {
-                                                            console.log(chalk.green('New Branches successfully pushed:'));
-                                                            console.log(pushOutput);
+                                                    async.parallel({
+                                                        npmUninstall: (parallelCb) => {
+                                                            // Uninstall this angular/cli version
+                                                            console.log(chalk.dim('Uninstalling the current @angular/cli version'));
+                                                            npm('uninstall', '@angular/cli', {}, parallelCb);
+                                                        },
+                                                        gitPush: (parallelCb) => {
+                                                            if (localMode) {
+                                                                console.log(chalk.yellow('In local mode, will skip pushing to origin'));
+                                                                parallelCb(null);
+                                                            } else {
+                                                                console.log(chalk.dim('Pushing changes to origin'));
+                                                                gitUtil.pushAllTo(appPath, 'origin', (pushErr, pushOutput) => {
+                                                                    if (pushErr) {
+                                                                        console.error(chalk.red('Error while pushing changes, will continue anyway'));
+                                                                        console.error(pushErr);
+                                                                    } else {
+                                                                        console.log(chalk.green('New Branches successfully pushed:'));
+                                                                        console.log(pushOutput);
+                                                                    }
+                                                                    parallelCb(null);
+                                                                });
+                                                            }
                                                         }
-                                                        // Uninstall this angular/cli version
-                                                        console.log(chalk.dim('Uninstalling the current @angular/cli version'));
-                                                        npm('uninstall', '@angular/cli', {}, cb);
-                                                    //});
+                                                    }, cb);
                                                 });
                                             });
                                         });
