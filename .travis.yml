@@ -17,6 +17,16 @@ install:
 script:
   - if [ "$TRAVIS_BRANCH" == "deploy" ]; then
       npm start;
+      cd cli-diff-selector;
+      npm install;
+      echo "[" > src/assets/versions.json;
+      git branch -r | grep -v base | awk -F/ '/\/ng/{print "\""$3"\","}' | uniq | tr -d '\n' | sed 's/.$//' >> src/assets/versions.json;
+      echo "]" >> src/assets/versions.json;
+      cat src/assets/versions.json;
+      export DEMO_DIST=$(pwd)/dist;
+      node_modules/.bin/ng build --prod;
+      cd ..;
+      ./deploy.sh;
     else
       echo "Not on deploy branch";
     fi

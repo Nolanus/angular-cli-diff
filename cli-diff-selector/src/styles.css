@@ -1,0 +1,7 @@
+/* You can add global styles to this file, and also import other style files */
+@import "~normalize.css/normalize.css";
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
+.mat-grid-tile figure {
+  flex-direction: column;
+}
