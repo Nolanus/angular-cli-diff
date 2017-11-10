@@ -10,9 +10,10 @@ const gitUtil = require('./util/git');
 
 console.log(chalk.bold.underline.magenta('angular-cli-diff'));
 async.auto({
-    gitBranches: (cb) => {
-        console.log(chalk.dim('Checking local git branches...'));
-        gitUtil.getLocalBranches(__dirname, (error, branches) => {
+    gitBranches: ['cliOptions', ({cliOptions}, cb) => {
+        console.log(chalk.dim('Checking ' + (cliOptions.localMode ? 'local' : 'remote') + ' git branches...'));
+        const getter = cliOptions.localMode ? gitUtil.getLocalBranches : gitUtil.getRemoteBranches;
+        getter(__dirname, (error, branches) => {
             if (error) {
                 cb(error);
                 return;
@@ -32,7 +33,7 @@ async.auto({
 
             cb(null, versions);
         });
-    },
+    }],
     gitRemoteUrl: ['cliOptions', ({cliOptions}, cb) => {
         gitUtil.getRemoteUrl(__dirname, (err, url) => {
             if (err) {
@@ -57,7 +58,8 @@ async.auto({
     cliOptions: (cb) => {
         const options = {
             localMode: false,
-            noSsh: false
+            noSsh: false,
+            stopAfterVersionFail: false
         };
         process.argv.slice(2).forEach((argument) => {
             switch (argument) {
@@ -66,6 +68,9 @@ async.auto({
                     break;
                 case '--no-ssh':
                     options.noSsh = true;
+                    break;
+                case '--stop-on-fail':
+                    options.stopAfterVersionFail = true;
                     break;
             }
         });
@@ -90,7 +95,12 @@ async.auto({
             if (err) {
                 console.error(chalk.red('Error while generating app for version ' + version));
                 console.error(err);
-                console.info(chalk.yellow('Will continue anyway'));
+                if (results.cliOptions.stopAfterVersionFail) {
+                    cb(err);
+                    return;
+                } else {
+                    console.info(chalk.yellow('Will continue anyway'));
+                }
             }
             cb(null);
         });

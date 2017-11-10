@@ -37,6 +37,15 @@ module.exports = {
             cb(null, data.split('\n').map(line => line.replace(/^\* /, '').trim()));
         });
     },
+    getRemoteBranches: (repoPath, cb) => {
+        _exec(repoPath, 'git branch -r', (err, data) => {
+            if (err) {
+                cb(err);
+                return;
+            }
+            cb(null, data.split('\n').map(line => line.substr(line.indexOf('/') + 1).trim()));
+        });
+    },
     getLocalTags: (repoPath, cb) => {
         _exec(repoPath, 'git tag -l', (err, data) => {
             if (err) {
@@ -69,6 +78,9 @@ module.exports = {
     },
     pushAllTo: (repoPath, pushTarget, cb) => {
         _exec(repoPath, 'git push --all ' + pushTarget, cb);
+    },
+    resetWithoutHeadMovement: (repoPath, base, head, cb) => {
+        _exec(repoPath, 'git reset --hard ' + base + ' && git reset --soft ' + head, cb);
     },
     setUserData: (repoPath, username, userMail, cb) => {
         _exec(repoPath, 'git config user.name "' + username + ' " && git config user.email "' + userMail + '"', cb);
