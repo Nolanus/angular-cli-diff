@@ -4,10 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 
 import { AppComponent } from './app.component';
+import { DrainPipe } from './drain.pipe';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    DrainPipe
   ],
   imports: [
     BrowserModule,
