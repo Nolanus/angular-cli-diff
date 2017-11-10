@@ -19,7 +19,7 @@ service.generateAndCommit = (basePath, appPath, generateArguments, commitMessage
         gitUtil.addAllAndCommit(appPath, commitMessage, cb);
     });
 };
-service.createApp = ({basePath, angularCliVersion, gitRemoteUrl, localMode}, cb) => {
+service.createApp = ({basePath, angularCliVersion, gitRemoteUrl, localMode, fullOutput}, cb) => {
     const appPath = path.resolve(basePath, 'app');
     console.log(chalk.bold.magenta('Processing @angular/cli@' + angularCliVersion));
 
@@ -48,14 +48,18 @@ service.createApp = ({basePath, angularCliVersion, gitRemoteUrl, localMode}, cb)
                         return;
                     }
                     console.log(chalk.green('Installed @angular/cli@' + angularCliVersion + ':'));
-                    console.log(output);
+                    if (fullOutput) {
+                        console.log(output);
+                    }
                     console.log(chalk.dim('Creating new app branch'));
-                    gitUtil.checkout(appPath, 'ng/' + angularCliVersion + '/app', (checkoutErr, checkoutOutput) => {
+                    gitUtil.checkout(appPath, 'ng/' + angularCliVersion + '/app', true, (checkoutErr, checkoutOutput) => {
                         if (checkoutErr) {
                             cb(checkoutErr);
                             return;
                         }
-                        console.log(checkoutOutput);
+                        if (fullOutput) {
+                            console.log(checkoutOutput);
+                        }
                         console.log(chalk.dim('Will generate a new app now'));
                         exec('./node_modules/.bin/ng new testApp --skip-install --skip-npm --skip-git --skip-commit --verbose', {cwd: basePath}, (ngNewErr, stdout) => {
                             if (ngNewErr) {
@@ -80,7 +84,7 @@ service.createApp = ({basePath, angularCliVersion, gitRemoteUrl, localMode}, cb)
                                         console.log(chalk.green('Successfully committed basic @angular/cli app'));
                                         console.log(commitOutput);
 
-                                        gitUtil.checkout(appPath, 'ng/base', (checkout2Err, checkout2Output) => {
+                                        gitUtil.checkout(appPath, 'ng/base', false, (checkout2Err, checkout2Output) => {
                                             if (checkout2Err) {
                                                 cb(checkout2Err);
                                                 return;
@@ -99,13 +103,15 @@ service.createApp = ({basePath, angularCliVersion, gitRemoteUrl, localMode}, cb)
                                                 console.log(mergeOutput);
 
                                                 console.log(chalk.dim('Changing back onto ng/' + angularCliVersion + '/app branch'));
-                                                gitUtil.checkout(appPath, 'ng/' + angularCliVersion + '/app', (checkout3Err, checkout3Output) => {
+                                                gitUtil.checkout(appPath, 'ng/' + angularCliVersion + '/app', false, (checkout3Err, checkout3Output) => {
                                                     if (checkout3Err) {
                                                         cb(checkout3Err);
                                                         return;
                                                     }
-                                                    console.log(chalk.green('Successfully checked out the branch:'));
-                                                    console.log(checkout3Output);
+                                                    console.log(chalk.green('Successfully checked out the branch'));
+                                                    if (fullOutput) {
+                                                        console.log(checkout3Output);
+                                                    }
 
                                                     // Now generate some things and commit them
                                                     async.eachLimit([

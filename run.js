@@ -11,28 +11,42 @@ const gitUtil = require('./util/git');
 console.log(chalk.bold.underline.magenta('angular-cli-diff'));
 async.auto({
     gitBranches: ['cliOptions', ({cliOptions}, cb) => {
-        console.log(chalk.dim('Checking ' + (cliOptions.localMode ? 'local' : 'remote') + ' git branches...'));
-        const getter = cliOptions.localMode ? gitUtil.getLocalBranches : gitUtil.getRemoteBranches;
-        getter(__dirname, (error, branches) => {
-            if (error) {
-                cb(error);
-                return;
-            }
-            const versions = branches.map(branch => {
-                const matches = branch.match(/ng\/([^\/]+)/);
-                if (matches === null) {
-                    return null;
+        async.series(
+            [
+                async.apply(gitUtil.fixOriginFetch, __dirname),
+                async.apply(gitUtil.fetchAll, __dirname)
+            ],
+            (fetchErr) => {
+                if (fetchErr) {
+                    cb(fetchErr);
+                    return;
                 }
-                return matches[1];
-            }).reduce((arr, version) => {
-                if (version !== null && arr.indexOf(version) < 0) {
-                    arr.push(version);
-                }
-                return arr;
-            }, []);
+                console.log(chalk.dim('Checking ' + (cliOptions.localMode ? 'local' : 'remote') + ' git branches...'));
+                const getter = cliOptions.localMode ? gitUtil.getLocalBranches : gitUtil.getRemoteBranches;
+                getter(__dirname, (error, branches) => {
+                    if (error) {
+                        cb(error);
+                        return;
+                    }
+                    if (cliOptions.fullOutput) {
+                        console.log('Loaded the following branches: ' + branches);
+                    }
+                    const versions = branches.map(branch => {
+                        const matches = branch.match(/ng\/([^\/]+)/);
+                        if (matches === null) {
+                            return null;
+                        }
+                        return matches[1];
+                    }).reduce((arr, version) => {
+                        if (version !== null && arr.indexOf(version) < 0) {
+                            arr.push(version);
+                        }
+                        return arr;
+                    }, []);
 
-            cb(null, versions);
-        });
+                    cb(null, versions);
+                });
+            });
     }],
     gitRemoteUrl: ['cliOptions', ({cliOptions}, cb) => {
         gitUtil.getRemoteUrl(__dirname, (err, url) => {
@@ -59,7 +73,8 @@ async.auto({
         const options = {
             localMode: false,
             noSsh: false,
-            stopAfterVersionFail: false
+            stopAfterVersionFail: false,
+            fullOutput: false
         };
         process.argv.slice(2).forEach((argument) => {
             switch (argument) {
@@ -71,6 +86,9 @@ async.auto({
                     break;
                 case '--stop-on-fail':
                     options.stopAfterVersionFail = true;
+                    break;
+                case '--verbose':
+                    options.fullOutput = true;
                     break;
             }
         });

@@ -28,6 +28,12 @@ module.exports = {
             cb(null, data.trim());
         });
     },
+    fixOriginFetch: (repoPath, cb) => {
+        _exec(repoPath, 'git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"', cb);
+    },
+    fetchAll: (repoPath, cb) => {
+        _exec(repoPath, 'git fetch --all', cb);
+    },
     getLocalBranches: (repoPath, cb) => {
         _exec(repoPath, 'git branch', (err, data) => {
             if (err) {
@@ -61,8 +67,8 @@ module.exports = {
     createBranch: (repoPath, branchName, startPoint, cb) => {
         _exec(repoPath, 'git branch --track -f ' + branchName + (startPoint ? ' ' + startPoint : '') + ' && git checkout ' + branchName, cb);
     },
-    checkout: (repoPath, branchName, cb) => {
-        _exec(repoPath, 'git checkout -B ' + branchName, cb);
+    checkout: (repoPath, branchName, create, cb) => {
+        _exec(repoPath, 'git checkout ' + (create ? '-b ' : '') + branchName, cb);
     },
     createTag: (repoPath, tagName, cb) => {
         _exec(repoPath, 'git tag "' + tagName + '"', cb);
