@@ -1,5 +1,5 @@
 // Versions to be ignored, e.g. due to serious bugs that prevent them from functioning
-const ignoreVersions = ['1.0.0-beta.28.3'];
+const ignoreVersions = ['1.0.0-beta.28.3', '1.3.0-rc.4', '1.4.0-rc.0', '1.5.0-beta.0', '1.5.0-beta.1', '1.5.0-beta.2'];
 
 const chalk = require('chalk');
 const async = require('async');
