@@ -137,7 +137,7 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
-testApp/
-app/
+/testApp/
+/app/
 /deploy_key
 /deploy_key.pub

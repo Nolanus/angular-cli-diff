@@ -1,0 +1,50 @@
+<section class="mat-typography">
+  <mat-toolbar color="primary">
+    <span>@angular/cli diff</span>
+    <span class="toolbar-spacer"></span>
+    <a [href]="githubUrl" mat-button class="github-button">
+      <img alt="GitHub" src="/assets/github.svg"> GitHub
+    </a>
+
+  </mat-toolbar>
+  <mat-card>
+    <p>
+      Select the respective
+      <code>@angular/cli</code> versions and press the compare button to get a git diff for easy manual version upgrade.
+    </p>
+    <mat-grid-list [cols]="11" [rowHeight]="'150px'" class="selector-grid">
+      <mat-grid-tile [colspan]="5">
+        <mat-form-field>
+          <mat-select placeholder="Current version" [formControl]="currentVersionControl" required>
+            <mat-option>--</mat-option>
+            <mat-option *ngFor="let version of versions; let i = index;" [value]="{index: i, version: version}">
+              {{ version }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="currentVersionControl.hasError('required')">Please choose a version</mat-error>
+        </mat-form-field>
+      </mat-grid-tile>
+      <mat-grid-tile>
+        <mat-icon>arrow_forward</mat-icon>
+      </mat-grid-tile>
+      <mat-grid-tile [colspan]="5">
+        <mat-form-field>
+          <mat-select placeholder="Target version" [formControl]="targetVersionControl" required>
+            <mat-option>--</mat-option>
+            <mat-option *ngFor="let version of versions; let i = index;" [value]="{index: i, version: version}">
+              {{ version }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="targetVersionControl.hasError('required')">Please choose a version</mat-error>
+          <mat-error *ngIf="targetVersionControl.hasError('downgradeNotPossible')">Please choose later version than your current</mat-error>
+        </mat-form-field>
+      </mat-grid-tile>
+      <mat-grid-tile [colspan]="11">
+        <button mat-raised-button color="primary" (click)="compare()" [disabled]="currentVersionControl.invalid || targetVersionControl.invalid">
+          <mat-icon>compare_arrows</mat-icon> Compare
+        </button>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </mat-card>
+
+</section>

@@ -1,0 +1,19 @@
+.toolbar-spacer {
+  flex: 1;
+}
+
+mat-card {
+  text-align: center;
+}
+
+mat-form-field {
+  width: 85%;
+}
+
+mat-grid-list.selector-grid {
+  font-size: 180%;
+}
+
+.github-button img {
+  height: 24px;
+}
