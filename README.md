@@ -7,10 +7,10 @@ It only offers git diffs between the different versions for easy manual upgradin
 
 ## How to
 
-- Visit nolanus.github.io/angular-cli-diff and select your current and the target version
+- Visit [nolanus.github.io/angular-cli-diff](http://nolanus.github.io/angular-cli-diff) and select your current and the target version
 - Click to compare button to show the diff of the generated project
 - Go over the changes and apply the changes to your codebase
-- Update the `@angular/cli` version in your `package.json` and run `npm i``
+- Update the `@angular/cli` version in your `package.json` and run `npm i`
 
 ## Why
 
