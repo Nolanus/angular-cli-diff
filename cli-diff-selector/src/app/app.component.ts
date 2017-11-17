@@ -17,7 +17,7 @@ export class AppComponent implements OnInit {
 
   public versions: string[] = [];
   constructor(httpClient: HttpClient) {
-    httpClient.get('/assets/versions.json').subscribe((data: string[]) => {
+    httpClient.get('assets/versions.json').subscribe((data: string[]) => {
       this.versions = data;
     });
   }
