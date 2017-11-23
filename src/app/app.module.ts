@@ -3,11 +3,13 @@ import { NgModule } from '@angular/core';
 
 
 import { AppComponent } from './app.component';
+import { DrainPipe } from './drain.pipe';
 
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    DrainPipe
   ],
   imports: [
     BrowserModule
