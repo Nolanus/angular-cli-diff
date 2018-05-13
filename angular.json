@@ -4,32 +4,32 @@
   "newProjectRoot": "projects",
   "projects": {
     "testApp": {
-      "root": "projects/testApp",
+      "root": "",
       "projectType": "application",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
             "outputPath": "dist/testApp",
-            "index": "projects/testApp/src/index.html",
-            "main": "projects/testApp/src/main.ts",
-            "polyfills": "projects/testApp/src/polyfills.ts",
-            "tsConfig": "projects/testApp/tsconfig.app.json",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": "src/polyfills.ts",
+            "tsConfig": "src/tsconfig.app.json",
             "assets": [
               {
                 "glob": "favicon.ico",
-                "input": "projects/testApp/src",
-                "output": "./"
+                "input": "src",
+                "output": "/"
               },
               {
                 "glob": "**/*",
-                "input": "projects/testApp/src/assets",
-                "output": "assets"
+                "input": "src/assets",
+                "output": "/assets"
               }
             ],
             "styles": [
               {
-                "input": "projects/testApp/src/styles.css"
+                "input": "src/styles.css"
               }
             ],
             "scripts": []
@@ -38,8 +38,8 @@
             "production": {
               "fileReplacements": [
                 {
-                  "from": "projects/testApp/src/environments/environment.ts",
-                  "to": "projects/testApp/src/environments/environment.prod.ts"
+                  "src": "src/environments/environment.ts",
+                  "replaceWith": "src/environments/environment.prod.ts"
                 }
               ],
               "optimization": true,
@@ -74,26 +74,26 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "projects/testApp/src/test.ts",
-            "polyfills": "projects/testApp/src/polyfills.ts",
-            "tsConfig": "projects/testApp/tsconfig.spec.json",
-            "karmaConfig": "projects/testApp/karma.conf.js",
+            "main": "src/test.ts",
+            "polyfills": "src/polyfills.ts",
+            "tsConfig": "src/tsconfig.spec.json",
+            "karmaConfig": "src/karma.conf.js",
             "styles": [
               {
-                "input": "projects/testApp/styles.css"
+                "input": "styles.css"
               }
             ],
             "scripts": [],
             "assets": [
               {
                 "glob": "favicon.ico",
-                "input": "projects/testApp/src/",
-                "output": "./"
+                "input": "src/",
+                "output": "/"
               },
               {
                 "glob": "**/*",
-                "input": "projects/testApp/src/assets",
-                "output": "assets"
+                "input": "src/assets",
+                "output": "/assets"
               }
             ]
           }
@@ -102,8 +102,8 @@
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
             "tsConfig": [
-              "projects/testApp/tsconfig.app.json",
-              "projects/testApp/tsconfig.spec.json"
+              "tsconfig.app.json",
+              "tsconfig.spec.json"
             ],
             "exclude": [
               "**/node_modules/**"
@@ -113,20 +113,20 @@
       }
     },
     "testApp-e2e": {
-      "root": "projects/testApp-e2e",
+      "root": "e2e/",
       "projectType": "application",
       "architect": {
         "e2e": {
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
-            "protractorConfig": "projects/testApp-e2e/protractor.conf.js",
+            "protractorConfig": "e2e/protractor.conf.js",
             "devServerTarget": "testApp:serve"
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": "projects/testApp-e2e/tsconfig.e2e.json",
+            "tsConfig": "e2e/tsconfig.e2e.json",
             "exclude": [
               "**/node_modules/**"
             ]
