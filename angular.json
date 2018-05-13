@@ -6,6 +6,7 @@
     "testApp": {
       "root": "",
       "projectType": "application",
+      "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
@@ -28,9 +29,7 @@
               }
             ],
             "styles": [
-              {
-                "input": "src/styles.css"
-              }
+              "src/styles.css"
             ],
             "scripts": []
           },
@@ -38,8 +37,8 @@
             "production": {
               "fileReplacements": [
                 {
-                  "src": "src/environments/environment.ts",
-                  "replaceWith": "src/environments/environment.prod.ts"
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
                 }
               ],
               "optimization": true,
@@ -133,6 +132,11 @@
           }
         }
       }
+    }
+  },
+  "schematics": {
+    "@schematics/angular:component": {
+      "styleext": "css"
     }
   }
 }
