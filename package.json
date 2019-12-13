@@ -22,7 +22,7 @@
     "async": "^2.5.0",
     "chalk": "^2.3.0",
     "glob-move": "^1.0.1",
-    "npm": "^4.6.1",
+    "npm": "^6.13.4",
     "rimraf": "^2.6.2"
   },
   "devDependencies": {
